@@ -140,6 +140,10 @@ class App extends React.PureComponent {
             <LazyRoute path="/catalog/ns/:ns" exact loader={() => import('./catalog' /* webpackChunkName: "catalog" */).then(m => m.CatalogPage)} />
             <Route path="/catalog" exact component={NamespaceRedirect} />
 
+            <LazyRoute path="/marketplace/all-namespaces" exact loader={() => import('./marketplace/kubernetes-marketplace' /* webpackChunkName: "marketplace" */).then(m => m.MarketplacePage)} />
+            <LazyRoute path="/marketplace/ns/:ns" exact loader={() => import('./marketplace/kubernetes-marketplace' /* webpackChunkName: "marketplace" */).then(m => m.MarketplacePage)} />
+            <Route path="/marketplace" exact component={NamespaceRedirect} />
+
             <LazyRoute path="/status/all-namespaces" exact loader={() => import('./cluster-overview' /* webpackChunkName: "cluster-overview" */).then(m => m.ClusterOverviewPage)} />
             <LazyRoute path="/status/ns/:ns" exact loader={() => import('./cluster-overview' /* webpackChunkName: "cluster-overview" */).then(m => m.ClusterOverviewPage)} />
             <Route path="/status" exact component={NamespaceRedirect} />
