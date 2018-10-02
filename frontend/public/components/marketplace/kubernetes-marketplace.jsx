@@ -7,8 +7,9 @@ import { FLAGS, connectToFlags, flagPending } from '../../features';
 import { Firehose, NavTitle, StatusBox } from '../utils';
 import { CatalogTileViewPage } from '../catalog-items';
 import { getMostRecentBuilderTag, getAnnotationTags, isBuilder} from '../image-stream';
-import { serviceClassDisplayName } from '../../module/k8s';
+import { serviceClassDisplayName, referenceForModel } from '../../module/k8s';
 import { getServiceClassIcon, getServiceClassImage, getImageStreamIcon, getImageForIconClass } from '../catalog-item-icon';
+import { PackageManifestModel } from '../../models';
 
 class CatalogListPage extends React.Component {
   constructor(props) {
@@ -20,8 +21,9 @@ class CatalogListPage extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    const {clusterserviceclasses, imagestreams, namespace} = this.props;
-    if (namespace !== prevProps.namespace ||
+    const {clusterserviceclasses, imagestreams, packagemanifests, namespace} = this.props;
+    if (packagemanifests !== prevProps.packagemanifests ||
+      namespace !== prevProps.namespace ||
       clusterserviceclasses !== prevProps.clusterserviceclasses ||
       imagestreams !== prevProps.imagestreams) {
       this.createCatalogData();
@@ -36,82 +38,15 @@ class CatalogListPage extends React.Component {
       return;
     }
 
-    if (clusterserviceclasses) {
-      clusterServiceClassItems = this.normalizeClusterServiceClasses(clusterserviceclasses.data, 'ClusterServiceClass');
-    }
-
-    if (imagestreams) {
-      imageStreamsItems = this.normalizeImagestreams(imagestreams.data, 'ImageStream');
-    }
-
     if (packagemanifests) {
       packageManifestItems = this.normalizePackageManifests(packagemanifests.data, 'PackageManifest');
     }
 
-    const items = _.sortBy([...clusterServiceClassItems, ...imageStreamsItems], 'tileName');
+    const items = _.sortBy([...packageManifestItems], 'tileName');
 
     this.setState({items});
   }
 
-  normalizeClusterServiceClasses(serviceClasses, kind) {
-    const {namespace = ''} = this.props;
-    const activeServiceClasses = _.filter(serviceClasses, serviceClass => {
-      return !serviceClass.status.removedFromBrokerCatalog;
-    });
-
-    return _.map(activeServiceClasses, serviceClass => {
-      const tileName = serviceClassDisplayName(serviceClass);
-      const iconClass = getServiceClassIcon(serviceClass);
-      const tileImgUrl = getServiceClassImage(serviceClass, iconClass);
-      const tileIconClass = tileImgUrl ? null : iconClass;
-      const tileDescription = _.get(serviceClass, 'spec.description');
-      const tileProvider = _.get(serviceClass, 'spec.externalMetadata.providerDisplayName');
-      const tags = _.get(serviceClass, 'spec.tags');
-      const href = `/k8s/cluster/clusterserviceclasses/${serviceClass.metadata.name}/create-instance?preselected-ns=${namespace}`;
-      return {
-        obj: serviceClass,
-        kind,
-        tileName,
-        tileIconClass,
-        tileImgUrl,
-        tileDescription,
-        tileProvider,
-        href,
-        tags,
-      };
-    });
-  }
-
-  normalizeImagestreams(imagestreams, kind) {
-    const builderImageStreams = _.filter(imagestreams, imagestream => {
-      return isBuilder(imagestream);
-    });
-
-    return _.map(builderImageStreams, imageStream => {
-      const { namespace: currentNamespace = '' } = this.props;
-      const tag = getMostRecentBuilderTag(imageStream);
-      const tileName = _.get(imageStream, ['metadata', 'annotations', 'openshift.io/display-name']) || imageStream.metadata.name;
-      const iconClass = getImageStreamIcon(tag);
-      const tileImgUrl = getImageForIconClass(iconClass);
-      const tileIconClass = tileImgUrl ? null : iconClass;
-      const tileDescription = _.get(tag, 'annotations.description');
-      const tags = getAnnotationTags(tag);
-      const tileProvider = _.get(tag, 'annotations.openshift.io/provider-display-name');
-      const { name, namespace } = imageStream.metadata;
-      const href = `/source-to-image?imagestream=${name}&imagestream-ns=${namespace}&preselected-ns=${currentNamespace}`;
-      return {
-        obj: imageStream,
-        kind,
-        tileName,
-        tileIconClass,
-        tileImgUrl,
-        tileDescription,
-        tileProvider,
-        href,
-        tags,
-      };
-    });
-  }
 
   normalizePackageManifests(packageManifests, kind) {
     const activePackageManifests = _.filter(packageManifests, packageManifest => {
@@ -119,15 +54,16 @@ class CatalogListPage extends React.Component {
     });
 
     return _.map(activePackageManifests, packageManifest => {
-      const tileName = serviceClassDisplayName(packageManifest);
+      const tileName = packageManifest.metadata.name;
       const iconClass = getServiceClassIcon(packageManifest);
       const tileImgUrl = getServiceClassImage(packageManifest, iconClass);
       const tileIconClass = tileImgUrl ? null : iconClass;
-      const tileDescription = _.get(packageManifest, 'spec.description');
-      const tileProvider = _.get(packageManifest, 'spec.externalMetadata.providerDisplayName');
-      const tags = _.get(packageManifest, 'spec.tags');
+      const tileDescription = packageManifest.metadata.description;
+      const tileProvider = packageManifest.metadata.labels.provider;
+      const tags = packageManifest.metadata.tags;
       const { name, namespace } = packageManifest.metadata;
       const href = `packages.app.redhat.com/v1alpha1/cluster/packagemanifests/${name}/create-instance?preselected-ns=${namespace}`;
+      console.log(packageManifest);
       return {
         obj: packageManifest,
         kind,
@@ -143,8 +79,8 @@ class CatalogListPage extends React.Component {
   }
 
   render() {
-    const {loaded, loadError} = this.props;
-    const {items} = this.state;
+    const { loaded, loadError } = this.props;
+    const { items } = this.state;
 
     return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
       <CatalogTileViewPage items={items} />
@@ -168,27 +104,11 @@ export const Marketplace = connectToFlags(FLAGS.OPENSHIFT, FLAGS.SERVICE_CATALOG
   }
 
   const resources = [];
-  if (flags.SERVICE_CATALOG) {
-    resources.push({
-      isList: true,
-      kind: 'ClusterServiceClass',
-      namespaced: false,
-      prop: 'clusterserviceclasses'
-    });
-  }
-  if (flags.OPENSHIFT) {
-    resources.push({
-      isList: true,
-      kind: 'ImageStream',
-      namespace: 'openshift',
-      prop: 'imagestreams'
-    });
-  }
-  // Need OLM to get here, so no need to check
+
   resources.push({
     isList: true,
-    kind: 'PackageManifest',
-    namespace: 'openshift',
+    kind: referenceForModel(PackageManifestModel),
+    namespace: 'kube-system',
     prop: 'packagemanifests'
   });
 
