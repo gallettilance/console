@@ -43,7 +43,8 @@ class MarketplaceListPage extends React.Component {
     return _.map(activePackageManifests, packageManifest => {
       const tileName = packageManifest.metadata.name;
       const iconClass = 'fa fa-clone'; // TODO: get this info from the packagemanifest
-      const tileImgUrl = null; // TODO: get this info from the packagemanifest
+      const iconObj = _.get(packageManifest, 'status.channels[0].currentCSVDesc.icon[0]', null);
+      const tileImgUrl = iconObj ? `data:${_.get(iconObj, 'mediatype')};base64,${_.get(iconObj, 'base64data')}`: null;
       const tileIconClass = tileImgUrl ? null : iconClass;
       const tileDescription = packageManifest.metadata.description;
       const tileProvider = packageManifest.metadata.labels.provider;
