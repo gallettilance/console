@@ -7,20 +7,21 @@ import CatalogTile from 'patternfly-react-extensions/dist/esm/components/Catalog
 
 import {Firehose, PageHeading, StatusBox} from '../utils';
 import {referenceForModel} from '../../module/k8s';
-import {normalizeIconClass} from '../catalog-item-icon';
 import {PackageManifestModel} from '../../models';
 import {MarketplaceModalOverlay} from './modal-overlay';
+import { MarketplaceTileViewPage } from './kubernetes-marketplace-items';
 
 const normalizePackageManifests = (packageManifests, kind) => {
   const activePackageManifests = _.filter(packageManifests, packageManifest => {
     return !packageManifest.status.removedFromBrokerCatalog;
   });
   return _.map(activePackageManifests, packageManifest => {
-    const tileName = packageManifest.metadata.name;
-    const iconClass = 'fa fa-clone'; // TODO: get this info from the packagemanifest
+    const name = packageManifest.metadata.name;
+    const defaultIconClass = 'fa fa-clone'; // TODO: get this info from the packagemanifest
     const iconObj = _.get(packageManifest, 'status.channels[0].currentCSVDesc.icon[0]');
-    const tileImgUrl = iconObj && `data:${iconObj.mediatype};base64,${iconObj.base64data}`;
-    const tileIconClass = tileImgUrl ? null : iconClass;
+    const imgUrl = iconObj && `data:${iconObj.mediatype};base64,${iconObj.base64data}`;
+    const iconClass = imgUrl ? null : defaultIconClass;
+    const description = packageManifest.metadata.description;
     const provider = _.get(packageManifest, 'metadata.labels.provider');
     const tags = packageManifest.metadata.tags;
     const version = _.get(packageManifest, 'status.channels[0].currentCSVDesc.version');
@@ -29,9 +30,9 @@ const normalizePackageManifests = (packageManifests, kind) => {
     return {
       obj: packageManifest,
       kind,
-      tileName,
-      tileIconClass,
-      tileImgUrl,
+      name,
+      iconClass,
+      imgUrl,
       description,
       provider,
       tags,
@@ -53,7 +54,7 @@ const getItems = (props) => {
     return [];
   }
   packageManifestItems = normalizePackageManifests(packagemanifests.data, 'PackageManifest');
-  return _.sortBy([...packageManifestItems], 'tileName');
+  return _.sortBy([...packageManifestItems], 'name');
 };
 
 class MarketplaceListPage extends React.Component {
@@ -79,45 +80,13 @@ class MarketplaceListPage extends React.Component {
     });
   }
 
-  renderTiles() {
-    const {items} = this.state;
-
-    return (
-      <CatalogTileView.Category totalItems={items.length} viewAll={true}>
-        {_.map(items, ((item) => {
-          const {obj, tileName, tileImgUrl, tileIconClass, provider, description} = item;
-          const uid = obj.metadata.uid;
-          const iconClass = tileIconClass ? `icon ${normalizeIconClass(tileIconClass)}` : null;
-          const vendor = provider ? `Provided by ${provider}` : null;
-          return <CatalogTile
-            id={uid}
-            key={uid}
-            title={tileName}
-            iconImg={tileImgUrl}
-            iconClass={iconClass}
-            vendor={vendor}
-            description={description}
-            onClick={() => this.toggleOpen(item)}
-          />;
-        }))}
-      </CatalogTileView.Category>
-    );
-  }
-
   render() {
     const {loaded, loadError} = this.props;
     const {items, selectedTile} = this.state;
     return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
-      <div className="co-catalog-page">
-        <div className="co-catalog-page__content">
-          <div className="co-catalog-page__num-items">{_.size(items)} items</div>
-          <CatalogTileView>
-            {this.renderTiles()}
-          </CatalogTileView>
-          {selectedTile &&
-          <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
-        </div>
-      </div>
+      <MarketplaceTileViewPage items={items} toggleOpen={(item) => toggleOpen(item)} />
+      {selectedTile &&
+      <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
     </StatusBox>;
   }
 }
