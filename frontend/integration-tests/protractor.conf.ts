@@ -35,7 +35,7 @@ export const config: Config = {
     chromeOptions: {
       args: [
         '--disable-gpu',
-        '--headless',
+        //'--headless',
         '--no-sandbox',
         '--window-size=1920,1200',
         '--disable-background-timer-throttling',
@@ -98,6 +98,7 @@ export const config: Config = {
     olmUpgrade: ['tests/base.scenario.ts', 'tests/olm/update-channel-approval.scenario.ts'],
     performance: ['tests/base.scenario.ts', 'tests/performance.scenario.ts'],
     serviceCatalog: ['tests/base.scenario.ts', 'tests/service-catalog/service-catalog.scenario.ts', 'tests/service-catalog/service-broker.scenario.ts', 'tests/service-catalog/service-class.scenario.ts', 'tests/service-catalog/service-binding.scenario.ts'],
+    marketplace: ['tests/base.scenario.ts', 'tests/marketplace/kubernetes-marketplace.scenario.ts'],
     all: ['tests/base.scenario.ts',
       'tests/crud.scenario.ts',
       'tests/secrets.scenario.ts',
