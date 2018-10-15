@@ -10,6 +10,8 @@ import {PackageManifestModel} from '../../models';
 import CatalogTileView from 'patternfly-react-extensions/dist/esm/components/CatalogTileView/CatalogTileView';
 import CatalogTile from 'patternfly-react-extensions/dist/esm/components/CatalogTile/CatalogTile';
 
+import {MarketplaceModalOverlay} from './modal-overlay';
+
 const normalizePackageManifests = (packageManifests, kind) => {
   const activePackageManifests = _.filter(packageManifests, packageManifest => {
     return !packageManifest.status.removedFromBrokerCatalog;
@@ -23,6 +25,13 @@ const normalizePackageManifests = (packageManifests, kind) => {
     const tileDescription = packageManifest.metadata.description;
     const tileProvider = _.get(packageManifest, 'metadata.labels.provider');
     const tags = packageManifest.metadata.tags;
+    const certifiedLevel = packageManifest.metadata.certifiedLevel;
+    const version = _.get(packageManifest, 'status.channels[0].currentCSVDesc.version');
+    const healthIndex = packageManifest.metadata.healthIndex;
+    const repository = packageManifest.metadata.repository;
+    const containerImage = packageManifest.metadata.containerImage;
+    const createdAt = packageManifest.metadata.createdAt;
+    const support = packageManifest.metadata.support;
     return {
       obj: packageManifest,
       kind,
@@ -32,6 +41,13 @@ const normalizePackageManifests = (packageManifests, kind) => {
       tileDescription,
       tileProvider,
       tags,
+      version,
+      certifiedLevel,
+      healthIndex,
+      repository,
+      containerImage,
+      createdAt,
+      support,
     };
   });
 };
@@ -49,7 +65,9 @@ const getItems = (props) => {
 class MarketplaceListPage extends React.Component {
   constructor() {
     super();
-    this.state = {};
+    this.state = {
+      selectedTile: null
+    };
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -58,6 +76,20 @@ class MarketplaceListPage extends React.Component {
       const items = getItems(props);
       return {items, packagemanifests};
     }
+  }
+
+  toggleOpen(item) {
+    this.setState(prevState => {
+      if (prevState.selectedTile === item) {
+        return {
+          selectedTile: null
+        };
+      }
+      return {
+        selectedTile: item
+      };
+
+    });
   }
 
   renderTiles() {
@@ -78,6 +110,7 @@ class MarketplaceListPage extends React.Component {
             iconClass={iconClass}
             vendor={vendor}
             description={tileDescription}
+            onClick={() => this.toggleOpen(item)}
           />;
         }))}
       </CatalogTileView.Category>
@@ -86,7 +119,7 @@ class MarketplaceListPage extends React.Component {
 
   render() {
     const {loaded, loadError} = this.props;
-    const {items} = this.state;
+    const {items, selectedTile} = this.state;
     return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
       <div className="co-catalog-page">
         <div className="co-catalog-page__content">
@@ -94,6 +127,8 @@ class MarketplaceListPage extends React.Component {
           <CatalogTileView>
             {this.renderTiles()}
           </CatalogTileView>
+          {selectedTile &&
+          <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
         </div>
       </div>
     </StatusBox>;
