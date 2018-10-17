@@ -2,14 +2,12 @@ import * as React from 'react';
 import * as _ from 'lodash-es';
 import * as PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
-import CatalogTileView from 'patternfly-react-extensions/dist/esm/components/CatalogTileView/CatalogTileView';
-import CatalogTile from 'patternfly-react-extensions/dist/esm/components/CatalogTile/CatalogTile';
 
 import {Firehose, PageHeading, StatusBox} from '../utils';
 import {referenceForModel} from '../../module/k8s';
 import {PackageManifestModel} from '../../models';
+import {MarketplaceTileViewPage} from './kubernetes-marketplace-items';
 import {MarketplaceModalOverlay} from './modal-overlay';
-import { MarketplaceTileViewPage } from './kubernetes-marketplace-items';
 
 const normalizePackageManifests = (packageManifests, kind) => {
   const activePackageManifests = _.filter(packageManifests, packageManifest => {
@@ -84,9 +82,13 @@ class MarketplaceListPage extends React.Component {
     const {loaded, loadError} = this.props;
     const {items, selectedTile} = this.state;
     return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
-      <MarketplaceTileViewPage items={items} toggleOpen={(item) => toggleOpen(item)} />
-      {selectedTile &&
-      <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
+      <div className="co-catalog-page">
+        <div className="co-catalog-page__tabs">
+          <MarketplaceTileViewPage items={items} toggleOpen={(item) => this.toggleOpen(item)} />
+          {selectedTile &&
+          <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
+        </div>
+      </div>
     </StatusBox>;
   }
 }

@@ -8,7 +8,7 @@ import PropertyItem from 'patternfly-react-extensions/dist/esm/components/Proper
 
 const MarketplaceModalOverlay = (props) => {
   const { item, close /* openSubscribe */ } = props;
-  const { tileName, tileImgUrl, provider, description, version, certifiedLevel, healthIndex, repository, containerImage, createdAt, support } = item;
+  const { name, imgUrl, provider, description, version, certifiedLevel, healthIndex, repository, containerImage, createdAt, support } = item;
   const notAvailable = <span className="properties-side-panel-pf-property-label">N/A</span>;
   return (
     <React.Fragment>
@@ -16,8 +16,8 @@ const MarketplaceModalOverlay = (props) => {
         <Modal.Header>
           <CatalogItemHeader
             className="co-marketplace-modal__item-header"
-            iconImg={tileImgUrl}
-            title={tileName}
+            iconImg={imgUrl}
+            title={name}
             vendor={<span> {provider}</span>}
           />
           <Modal.CloseButton onClick={close} />

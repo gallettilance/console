@@ -9,6 +9,21 @@ import FormControl from 'patternfly-react/dist/esm/components/Form/FormControl';
 
 import {normalizeIconClass} from '../catalog-item-icon';
 
+function getFilterItems(items, field) {
+  const filterItems = {};
+  _.each(items, item => {
+    const itemValue = item[field];
+    if (itemValue) {
+      filterItems[itemValue] = {
+        label: itemValue,
+        value: itemValue,
+        active: false,
+      };
+    }
+  });
+  return filterItems;
+}
+
 function getFilters(items, filterCategories=[]) {
   const filters = {
     name: {
@@ -17,41 +32,25 @@ function getFilters(items, filterCategories=[]) {
     },
   };
 
-  _.each(items, item => {
-    if (filterCategories.length > 0) {
-      // Only consider filters in filterCategories
-      _.each(filterCategories, category => {
-        const itemValue = item[category];
-        if (itemValue && (!filters[category] || !filters[category][itemValue]) ) {
-          if (!filters[category]) {
-            filters[category] = {};
-          }
-          filters[category][itemValue] = {
-            label: itemValue,
-            value: itemValue,
-            active: false,
-          };
-        }
-      });
-    } else {
-      // Find filters from item objects
-      _.forOwn(item, (value, key) => {
-        if (key === 'obj' || key.includes('iconClass') || key.includes('imgUrl')) {
-          return;
-        }
-        if (value && (!filters[key] || !filters[key][value]) ) {
-          if (!filters[key]) {
-            filters[key] = {};
-          }
-          filters[key][value] = {
-            label: value,
-            value: value,
-            active: false,
-          };
-        }
-      });
-    }
-  });
+  if (filterCategories.length > 0) {
+    _.each(filterCategories, field => {
+      const filterItems = getFilterItems(items, field);
+      if (filterItems) {
+        filters[field] = filterItems;
+      }
+    });
+  } else if (items.length > 0){
+    // Sample filter fields from first item
+    _.forOwn(items[0], (value, field) => {
+      if (field === 'obj' || field.includes('iconClass') || field.includes('imgUrl')) {
+        return;
+      }
+      const filterItems = getFilterItems(items, field);
+      if (filterItems) {
+        filters[field] = filterItems;
+      }
+    });
+  }
 
   return filters;
 }
@@ -251,6 +250,7 @@ export class MarketplaceTileViewPage extends React.Component {
 
   renderTiles() {
     const items = this.state.filteredItems;
+    const {toggleOpen} = this.props;
 
     return (
       <CatalogTileView.Category totalItems={items.length} viewAll={true}>
@@ -267,6 +267,7 @@ export class MarketplaceTileViewPage extends React.Component {
             iconClass={normalizedIconClass}
             vendor={vendor}
             description={description}
+            onClick={() => toggleOpen(item)}
           />;
         }))}
       </CatalogTileView.Category>
