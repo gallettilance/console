@@ -27,4 +27,16 @@ describe('Viewing the operators in Kubernetes Marketplace', () => {
       expect(marketplaceView.entryTileFor(name).isDisplayed()).toBe(true);
     });
   });
+
+  it('displays MarketplaceModalOverlay when an operator is clicked', async() => {
+    openCloudServices.forEach(name => {
+      await marketplaceView.openOperatorModalFor(name);
+      await marketplaceView.operatorModalIsLoaded();
+
+      expect(marketplaceView.operatorModal().isDisplayed()).toBe(true);
+      
+      await marketplaceView.closeOperatorModal();
+      await marketplaceView.operatorModalIsClosed();
+    });
+  });
 });

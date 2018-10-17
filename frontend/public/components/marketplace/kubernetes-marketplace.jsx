@@ -82,13 +82,9 @@ class MarketplaceListPage extends React.Component {
     const {loaded, loadError} = this.props;
     const {items, selectedTile} = this.state;
     return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
-      <div className="co-catalog-page">
-        <div className="co-catalog-page__tabs">
-          <MarketplaceTileViewPage items={items} toggleOpen={(item) => this.toggleOpen(item)} />
-          {selectedTile &&
-          <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
-        </div>
-      </div>
+      <MarketplaceTileViewPage items={items} toggleOpen={(item) => this.toggleOpen(item)} />
+      {selectedTile &&
+      <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
     </StatusBox>;
   }
 }
