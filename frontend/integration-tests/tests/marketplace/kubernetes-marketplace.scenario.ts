@@ -28,15 +28,64 @@ describe('Viewing the operators in Kubernetes Marketplace', () => {
     });
   });
 
-  it('displays MarketplaceModalOverlay when an operator is clicked', async() => {
-    openCloudServices.forEach(name => {
-      await marketplaceView.openOperatorModalFor(name);
-      await marketplaceView.operatorModalIsLoaded();
+  it('displays etcd operator when filter "CoreOS, Inc" is active', async() => {
+    await marketplaceView.clickFilterCheckbox('CoreOS');
 
-      expect(marketplaceView.operatorModal().isDisplayed()).toBe(true);
-      
-      await marketplaceView.closeOperatorModal();
-      await marketplaceView.operatorModalIsClosed();
+    expect(marketplaceView.entryTileFor('etcd').isDisplayed()).toBe(true);
+
+    // Cleanup
+    await marketplaceView.clickFilterCheckbox('CoreOS');
+  });
+
+  it('does not display etcd operator when filter "Red Hat, Inc." is active', async() => {
+    await marketplaceView.clickFilterCheckbox('Red Hat');
+
+    expect(marketplaceView.entryTileCount('etcd')).toBe(0);
+
+    // Cleanup
+    await marketplaceView.clickFilterCheckbox('Red Hat');
+  });
+
+  it('displays "prometheus" as an operator when using the filter "p"', async() => {
+    await marketplaceView.filterByName('p');
+
+    expect(marketplaceView.entryTileFor('prometheus').isDisplayed()).toBe(true);
+
+    // Cleanup
+    await marketplaceView.filterByName('');
+  });
+
+  it('displays "Clear All Filters" text when filters remove all operators from display', async() => {
+    await marketplaceView.filterByName('NoOperatorsTest');
+
+    expect(marketplaceView.entryTiles.count()).toBe(0);
+    expect(marketplaceView.clearFiltersText.isDisplayed()).toBe(true);
+  });
+
+  it('clears all filters when "Clear All Filters" text is clicked', async() => {
+    await marketplaceView.clearFiltersText.click();
+
+    expect(marketplaceView.filterTextbox.getAttribute('value')).toEqual('');
+    expect(marketplaceView.activeFilterCheckboxes.count()).toBe(0);
+
+    // All tiles should be displayed
+    openCloudServices.forEach(name => {
+      expect(marketplaceView.entryTileFor(name).isDisplayed()).toBe(true);
     });
   });
+
+  // Test MarketplaceModalOverlay for each operator
+  openCloudServices.forEach(name => {
+    it('displays MarketplaceModalOverlay with correct content when ' + name + ' operator is clicked', async() => {
+        marketplaceView.entryTileFor(name).click();
+        await marketplaceView.operatorModalIsLoaded();
+
+        expect(marketplaceView.operatorModal.isDisplayed()).toBe(true);
+        expect(marketplaceView.operatorModalTitle.getText()).toEqual(name);
+
+        await marketplaceView.closeOperatorModal();
+        await marketplaceView.operatorModalIsClosed();
+    });
+  });
+
 });
