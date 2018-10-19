@@ -3,52 +3,73 @@ export const marketplaceListPageProps = {
   loadError: {},
   packagemanifests: {
     data: [
-      {
-        metadata: {
-          creationTimestamp: '',
-          labels: {
-            catalog: '',
-            catalog-namespace: '',
-            provider: '',
-            provider-url: '',
-          },
-          name: '',
-          namespace: '',
-          selfLink: '',
+      metadata: {
+        creationTimestamp: '',
+        labels: {
+          catalog: '',
+          catalog-namespace: '',
+          provider: '',
+          'provider-url': '',
         },
-        spec: {},
-        status: {
-          catalogSource: '',
-          catalogSourceNamespace: '',
-          channels: [
-            {
-              currentCSV: '',
-              currentCSVDesc: {
-                annotations: {}, // This is where extra display info will be stored
-                displayName: '',
-                icon: [
-                  {
-                    base64data: '',
-                    mediatype: '',
-                  },
-                ],
-                provider: {
-                  name: '',
+        name: '',
+        namespace: '',
+        selfLink: '',
+      },
+      spec: {},
+      status: {
+        catalogSource: '',
+        catalogSourceNamespace: '',
+        channels: [
+          {
+            currentCSV: '',
+            currentCSVDesc: {
+              annotations: {}, // This is where extra display info will be stored
+              displayName: '',
+              icon: [
+                {
+                  base64data: '',
+                  mediatype: '',
                 },
-                version: '',
+              ],
+              provider: {
+                name: '',
               },
+              version: '',
             },
-            name: 'alpha',
-          ],
-          defaultChannel: '',
-          packageName: '',
-          provider: {
-            name: '',
           },
+          name: 'alpha',
+        ],
+        defaultChannel: '',
+        packageName: '',
+        provider: {
+          name: '',
         },
       },
+    },
     ],
   }
 };
 
-export const marketplaceItems = {};
+
+
+export const marketplaceItems = [
+  {
+    obj: {
+      //
+    },
+    kind: '',
+    name: '',
+    iconClass: '',
+    imgUrl: '',
+    description: '',
+    provider: '',
+    tags: [],
+    version: '',
+    certifiedLevel: '',
+    healthIndex: '',
+    repository: '',
+    containerImage: '',
+    createdAt: '',
+    support: '',
+  },
+];
