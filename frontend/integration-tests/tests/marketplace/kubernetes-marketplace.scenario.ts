@@ -55,7 +55,7 @@ describe('Viewing the operators in Kubernetes Marketplace', () => {
     await marketplaceView.filterByName('');
   });
 
-  it('displays "Clear All Filters" text when filters remove all operators from display', async() => {
+  it('displays "Clear All Filters" when filters have no results', async() => {
     await marketplaceView.filterByName('NoOperatorsTest');
 
     expect(marketplaceView.entryTiles.count()).toBe(0);
@@ -76,7 +76,7 @@ describe('Viewing the operators in Kubernetes Marketplace', () => {
 
   // Test MarketplaceModalOverlay for each operator
   openCloudServices.forEach(name => {
-    it('displays MarketplaceModalOverlay with correct content when ' + name + ' operator is clicked', async() => {
+    it('displays modal overlay with correct content when ' + name + ' operator is clicked', async() => {
         marketplaceView.entryTileFor(name).click();
         await marketplaceView.operatorModalIsLoaded();
 
