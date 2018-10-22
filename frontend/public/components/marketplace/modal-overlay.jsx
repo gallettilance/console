@@ -7,7 +7,7 @@ import PropertiesSidePanel from 'patternfly-react-extensions/dist/esm/components
 import PropertyItem from 'patternfly-react-extensions/dist/esm/components/PropertiesSidePanel/PropertyItem';
 
 const MarketplaceModalOverlay = (props) => {
-  const { item, close /* openSubscribe */ } = props;
+  const { item, close, openSubscribe } = props;
   const { name, imgUrl, provider, description, version, certifiedLevel, healthIndex, repository, containerImage, createdAt, support } = item;
   const notAvailable = <span className="properties-side-panel-pf-property-label">N/A</span>;
   return (
@@ -25,7 +25,7 @@ const MarketplaceModalOverlay = (props) => {
         <Modal.Body>
           <div className="co-marketplace-modal__body">
             <PropertiesSidePanel>
-              <Button bsStyle="primary" className="co-marketplace-modal__subscribe" /* onClick={ openSubscribe }*/ >
+              <Button bsStyle="primary" className="co-marketplace-modal__subscribe" onClick={ openSubscribe } >
                 Subscribe
               </Button>
               <PropertyItem label="Operator Version" value={version || notAvailable} />

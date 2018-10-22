@@ -4,8 +4,8 @@ import * as PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
 
 import {Firehose, PageHeading, StatusBox} from '../utils';
-import {referenceForModel} from '../../module/k8s';
-import {PackageManifestModel} from '../../models';
+import {k8sCreate, referenceForModel} from '../../module/k8s';
+import {CatalogSourceConfigModel, PackageManifestModel} from '../../models';
 import {MarketplaceTileViewPage} from './kubernetes-marketplace-items';
 import {MarketplaceModalOverlay} from './modal-overlay';
 
@@ -24,7 +24,7 @@ const normalizePackageManifests = (packageManifests, kind) => {
     const tags = packageManifest.metadata.tags;
     const version = _.get(packageManifest, 'status.channels[0].currentCSVDesc.version');
     const currentCSVAnnotations = _.get(packageManifest, 'status.channels[0].currentCSVDesc.annotations', {});
-    const { description, certifiedLevel, healthIndex, repository, containerImage, createdAt, support } = currentCSVAnnotations;
+    const { description, certifiedLevel, healthIndex, repository, containerImage, createdAt, support, packages } = currentCSVAnnotations;
     return {
       obj: packageManifest,
       kind,
@@ -41,6 +41,7 @@ const normalizePackageManifests = (packageManifests, kind) => {
       containerImage,
       createdAt,
       support,
+      packages,
     };
   });
 };
@@ -78,13 +79,35 @@ export class MarketplaceListPage extends React.Component {
     });
   }
 
+  subscribe() {
+    // Subscribe to operator by creating catalogSourceConfig in a given namespace
+    const targetNamespace = 'kube-system';
+    const {name, packages} = this.state.selectedTile;
+    console.log(packages);
+    const catalogSourceConfig = {
+      apiVersion: 'marketplace.redhat.com/v1alpha1',
+      kind: 'CatalogSourceConfig',
+      metadata: {
+        name,
+        namespace: targetNamespace,
+      },
+      spec: {
+        targetNamespace,
+        packages: name,
+      },
+    };
+
+    // This returns a promise, should add some error checking on this
+    k8sCreate(CatalogSourceConfigModel, catalogSourceConfig);
+  }
+
   render() {
     const {loaded, loadError} = this.props;
     const {items, selectedTile} = this.state;
     return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
       <MarketplaceTileViewPage items={items} toggleOpen={(item) => this.toggleOpen(item)} />
       {selectedTile &&
-      <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={/* TODO */} />}
+      <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={() => this.subscribe()} />}
     </StatusBox>;
   }
 }

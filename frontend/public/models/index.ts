@@ -14,6 +14,19 @@ export const CatalogSourceModel: K8sKind = {
   plural: 'catalogsources',
 };
 
+export const CatalogSourceConfigModel: K8sKind = {
+  kind: 'CatalogSourceConfig',
+  label: 'CatalogSourceConfig',
+  labelPlural: 'CatalogSourceConfigs',
+  apiGroup: 'marketplace.redhat.com',
+  apiVersion: 'v1alpha1',
+  path: 'catalogsourceconfigs',
+  abbr: 'CSC',
+  namespaced: true,
+  crd: true,
+  plural: 'catalogsourceconfigs',
+}
+
 export const PackageManifestModel: K8sKind = {
   kind: 'PackageManifest',
   label: 'PackageManifest',
