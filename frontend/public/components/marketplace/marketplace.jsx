@@ -120,7 +120,7 @@ class MarketplaceListPage extends React.Component {
             {this.renderTiles()}
           </CatalogTileView>
           {selectedItem &&
-          <MarketplaceItemModal item={selectedItem} close={() => this.closeOverlay()} openSubscribe={/* TODO */} />}
+          <MarketplaceItemModal item={selectedItem} close={() => this.closeOverlay()} />}
         </div>
       </div>
     </StatusBox>;

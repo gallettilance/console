@@ -1,3 +1,5 @@
+$marketplace-border-style: 1px solid rgb(209, 209, 209);
+
 .co-marketplace-modal {
   &__body {
     display: flex;
@@ -13,7 +15,35 @@
   }
   
   &__subscribe {
-    margin-bottom: 20px;
     width: 100%;
+    margin-bottom: 20px;
   }
+}
+
+.co-marketplace-subscribe {
+  padding: 10px;
+  padding-top: 0;
+}
+ .co-marketplace-subscribe--header {
+  margin-bottom: 20px;
+}
+ .co-marketplace-subscribe--form {
+  display: inline-block;
+  float: left;
+  width: 40%;
+  padding-right: 20px;
+}
+ .co-marketplace-subscribe--dropdowns {
+  border-bottom: ($marketplace-border-style);
+}
+ .co-marketplace-subscribe--dropdownelement {
+  padding-bottom: 20px;
+}
+ .co-marketplace-subscribe--buttons {
+  padding-top: 20px;
+}
+ .co-marketplace-subscribe--description {
+  display: inline-block;
+  float: left;
+  width: 55%;
 }
