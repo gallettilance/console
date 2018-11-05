@@ -2,13 +2,16 @@ import * as React from 'react';
 import * as _ from 'lodash-es';
 import * as PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
+import {CatalogTileView} from 'patternfly-react-extensions/dist/esm/components/CatalogTileView';
+import {CatalogTile} from 'patternfly-react-extensions/dist/esm/components/CatalogTile';
 
 import {Firehose, PageHeading, StatusBox} from '../utils';
-import {k8sCreate, referenceForModel} from '../../module/k8s';
-import {CatalogSourceConfigModel, PackageManifestModel} from '../../models';
+import {referenceForModel} from '../../module/k8s';
+import {PackageManifestModel} from '../../models';
 import {MarketplaceTileViewPage} from './kubernetes-marketplace-items';
-import {MarketplaceModalOverlay} from './modal-overlay';
+import {MarketplaceItemModal} from './modal-overlay';
 import {AdminSubscribe} from './kubernetes-marketplace-subscribe'
+import {MarketplaceTileViewPage} from './kubernetes-marketplace-items';
 
 const normalizePackageManifests = (packageManifests, kind) => {
   const activePackageManifests = _.filter(packageManifests, packageManifest => {
@@ -16,6 +19,7 @@ const normalizePackageManifests = (packageManifests, kind) => {
   });
   return _.map(activePackageManifests, packageManifest => {
     const name = packageManifest.metadata.name;
+    const uid = `${name}/${packageManifest.status.catalogSourceNamespace}`;
     const defaultIconClass = 'fa fa-clone'; // TODO: get this info from the packagemanifest
     const iconObj = _.get(packageManifest, 'status.channels[0].currentCSVDesc.icon[0]');
     const imgUrl = iconObj && `data:${iconObj.mediatype};base64,${iconObj.base64data}`;
@@ -30,6 +34,7 @@ const normalizePackageManifests = (packageManifests, kind) => {
       obj: packageManifest,
       kind,
       name,
+      uid,
       iconClass,
       imgUrl,
       description,
@@ -61,8 +66,7 @@ export class MarketplaceListPage extends React.Component {
   constructor() {
     super();
     this.state = {
-      selectedTile: null,
-      showSubscribe: null,
+      selectedItem: null,
     };
   }
 
@@ -74,70 +78,26 @@ export class MarketplaceListPage extends React.Component {
     }
   }
 
-  toggleOpen(item) {
-    this.setState(prevState => {
-      const selectedTile = prevState.selectedTile === item ? null : item;
-      return { selectedTile };
+  openOverlay(item) {
+    this.setState({
+      selectedItem : item
     });
   }
 
-  subscribe(targetNamespace) {
-    // Subscribe to operator by creating catalogSourceConfig in a given namespace
-    const {name, packageId} = this.state.selectedTile;
-    console.log(packageId);
-    const catalogSourceConfig = {
-      apiVersion: 'marketplace.redhat.com/v1alpha1',
-      kind: 'CatalogSourceConfig',
-      metadata: {
-        name: `${name}`,
-        namespace: "marketplace",
-      },
-      spec: {
-        targetNamespace: `${targetNamespace}`,
-        packages: `${packageId}`,
-      },
-    };
-
-    // This returns a promise, should add some error checking on this
-    k8sCreate(CatalogSourceConfigModel, catalogSourceConfig);
-
-    this.hideSubscribePage();
-  }
-
-  hideSubscribePage() {
+  closeOverlay() {
     this.setState({
-      showSubscribe : null,
-      selectedTile: null
-    })
-  }
-
-  showSubscribePage() {
-    this.setState({
-      showSubscribe : true
-    })
+      selectedItem : null
+    });
   }
 
   render() {
     const {loaded, loadError} = this.props;
-    const {items, selectedTile, showSubscribe} = this.state;
-    return (
-    showSubscribe ?
-      <AdminSubscribe item={selectedTile} close={() => this.hideSubscribePage()} subscribe={(targetNamespace) => this.subscribe(targetNamespace)}/>
-      :
-      <React.Fragment>
-        <Helmet>
-          <title>Kubernetes Marketplace</title>
-        </Helmet>
-        <div className="co-catalog">
-        <PageHeading title="Kubernetes Marketplace" />
-        <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
-          <MarketplaceTileViewPage items={items} toggleOpen={(item) => this.toggleOpen(item)} />
-          {selectedTile &&
-          <MarketplaceModalOverlay item={selectedTile} close={() => this.toggleOpen(null)} openSubscribe={() => this.showSubscribePage()} />}
-        </StatusBox>
-        </div>
-      </React.Fragment>
-    )
+    const {items, selectedItem} = this.state;
+    return <StatusBox data={items} loaded={loaded} loadError={loadError} label="Resources">
+      <MarketplaceTileViewPage items={items} openOverlay={(item) => this.openOverlay(item)} />
+      {selectedItem &&
+      <MarketplaceItemModal item={selectedItem} close={() => this.closeOverlay()}/>}
+    </StatusBox>;
   }
 }
 MarketplaceListPage.displayName = 'MarketplaceList';
@@ -160,5 +120,13 @@ export const Marketplace = () => {
 Marketplace.displayName = 'Marketplace';
 
 export const MarketplacePage = () => {
-  return <Marketplace />
+  return <React.Fragment>
+    <Helmet>
+      <title>Kubernetes Marketplace</title>
+    </Helmet>
+    <div className="co-catalog">
+      <PageHeading title="Kubernetes Marketplace" />
+      <Marketplace />
+    </div>
+    </React.Fragment>
 };

@@ -250,7 +250,7 @@ export class MarketplaceTileViewPage extends React.Component {
 
   renderTiles() {
     const items = this.state.filteredItems;
-    const {toggleOpen} = this.props;
+    const {openOverlay} = this.props;
 
     return (
       <CatalogTileView.Category totalItems={items.length} viewAll={true}>
@@ -267,7 +267,7 @@ export class MarketplaceTileViewPage extends React.Component {
             iconClass={normalizedIconClass}
             vendor={vendor}
             description={description}
-            onClick={() => toggleOpen(item)}
+            onClick={() => openOverlay(item)}
           />;
         }))}
       </CatalogTileView.Category>

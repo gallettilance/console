@@ -4,6 +4,9 @@ import { Dropdown } from '../utils';
 import Button from 'patternfly-react/dist/esm/components/Button/Button';
 import CatalogItemHeader from 'patternfly-react-extensions/dist/esm/components/CatalogItemHeader/CatalogItemHeader';
 
+import {k8sCreate, referenceForModel} from '../../module/k8s';
+import {CatalogSourceConfigModel, PackageManifestModel} from '../../models';
+
 class DropdownElement extends React.Component {
   constructor(props) {
     super(props);
@@ -38,7 +41,31 @@ class AdminSubscribe extends React.Component {
       }
     };
   }
-   onChange = (selected, id) => {
+
+  subscribe(targetNamespace) {
+    // Subscribe to operator by creating catalogSourceConfig in a given namespace
+    const {item, close} = this.props;
+    const {name, packageId} = item;
+    const catalogSourceConfig = {
+      apiVersion: 'marketplace.redhat.com/v1alpha1',
+      kind: 'CatalogSourceConfig',
+      metadata: {
+        name: `${name}`,
+        namespace: "marketplace",
+      },
+      spec: {
+        targetNamespace: `${targetNamespace}`,
+        packages: `${packageId}`,
+      },
+    };
+
+    // This returns a promise, should add some error checking on this
+    k8sCreate(CatalogSourceConfigModel, catalogSourceConfig);
+
+    close();
+  };
+
+  onChange = (selected, id) => {
     this.setState((prevState) => {
       const form = prevState.form;
       form.dropdowns[id] = selected;
@@ -47,8 +74,9 @@ class AdminSubscribe extends React.Component {
       };
     });
   };
-   render () {
-    const { item, close, subscribe } = this.props;
+
+  render () {
+    const { item, close } = this.props;
     const { name, imgUrl, provider, description, version, certifiedLevel, healthIndex, repository, containerImage, createdAt, support } = item;
 
      // TODO: Load the namespaces from the cluster
@@ -78,7 +106,8 @@ class AdminSubscribe extends React.Component {
         }
       }
     ];
-     return (
+
+    return (
       <div className="co-marketplace-subscribe">
         <div className="co-marketplace-subscribe--header">
           <h1>Subscribe Service</h1>
@@ -99,7 +128,7 @@ class AdminSubscribe extends React.Component {
             }
            </div>
           <div className="co-marketplace-subscribe--buttons">
-            <Button bsStyle="primary" className="btn-cancel" onClick={() => subscribe(this.state.form.dropdowns.namespace)}>
+            <Button bsStyle="primary" className="btn-cancel" onClick={() => this.subscribe(this.state.form.dropdowns.namespace)}>
               Subscribe
             </Button>
             <Button bsStyle="default" onClick={close}>
