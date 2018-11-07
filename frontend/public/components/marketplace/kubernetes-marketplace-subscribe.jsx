@@ -1,34 +1,76 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
-import { Dropdown } from '../utils';
+import * as _ from 'lodash-es';
+
 import Button from 'patternfly-react/dist/esm/components/Button/Button';
 import CatalogItemHeader from 'patternfly-react-extensions/dist/esm/components/CatalogItemHeader/CatalogItemHeader';
+import { FieldLevelHelp } from 'patternfly-react';
+import { Dropdown, Firehose } from '../utils';
+import { ProjectModel } from '../../models';
+
+const getItems = (props) => {
+  const {namespace, loaded} = props;
+  if (!loaded || !namespace) {
+    return {};
+  }
+  let items = [];
+  _.forEach(namespace.data, ns => {
+    const name = _.get(ns, 'metadata.name', false);
+    if (name) {
+      items.push(name);
+    }
+  });
+  items = _.sortBy(items);
+  return _.zipObject(items, items);
+};
+
+const NamespaceDropdown = (props) => {
+  // Some namespaces are too long to fit in the dropdown
+  // when the screen is small
+  const { title, onChange, id } = props;
+  const items = getItems(props);
+  return <Dropdown
+    title={title}
+    id={id}
+    items={items}
+    dropDownClassName="dropdown--full-width"
+    onChange={onChange}
+  />;
+}
 
 class DropdownElement extends React.Component {
   constructor(props) {
     super(props);
   }
-   render() {
-    const { title, id, items, onChange } = this.props;
+  render() {
+    const { title, id, items, onChange, help } = this.props;
     return (
       <div className="co-marketplace-subscribe--dropdownelement">
-        {title} <br/>
-        <Dropdown
+        {title}
+        {help && <FieldLevelHelp content={help} />}
+        <br />
+        {id === 'namespace'
+        ?<Firehose resources={[{ kind: ProjectModel.kind, prop: 'namespace', isList: true }]}>
+          <NamespaceDropdown
+            title={title}
+            id={id}
+            onChange={onChange}
+          />
+        </Firehose>
+        :<Dropdown
           title={title}
           id={id}
           items={items}
           dropDownClassName="dropdown--full-width"
-          id="dropdown-selectbox"
           onChange={onChange}
-        />
+        />}
       </div>
-    )
+    );
   }
 }
 class AdminSubscribe extends React.Component {
   constructor(props) {
     super(props);
-     this.state = {
+    this.state = {
       form: {
         dropdowns: {
           namespace: null,
@@ -38,7 +80,8 @@ class AdminSubscribe extends React.Component {
       }
     };
   }
-   onChange = (selected, id) => {
+
+  onChange(selected, id) {
     this.setState((prevState) => {
       const form = prevState.form;
       form.dropdowns[id] = selected;
@@ -46,39 +89,36 @@ class AdminSubscribe extends React.Component {
         form: form
       };
     });
-  };
-   render () {
-    const { item, close, subscribe } = this.props;
-    const { name, imgUrl, provider, description, version, certifiedLevel, healthIndex, repository, containerImage, createdAt, support } = item;
+  }
 
-     // TODO: Load the namespaces from the cluster
+  render () {
+    const { item, close, subscribe } = this.props;
+    const { name, imgUrl, provider, description } = item;
+
     const form = [
       {
-        title: "Namespace",
-        id: "namespace",
+        title: 'Target Namespace',
+        id: 'namespace',
+        help: 'Select a namespace to subscribe this operator to.',
+      },
+      {
+        title: 'Update Channel',
+        id: 'channel',
         items: {
-          default: "default",
-          myproject: "myproject"
+          stable: 'Stable',
+          latest: 'Latest'
         }
       },
       {
-        title: "Update Channel",
-        id: "channel",
+        title: 'Update Strategy',
+        id: 'strategy',
         items: {
-          stable: "Stable",
-          latest: "Latest"
-        }
-      },
-      {
-        title: "Update Strategy",
-        id: "strategy",
-        items: {
-          automatic: "Automatic",
-          manual: "Manual"
+          automatic: 'Automatic',
+          manual: 'Manual'
         }
       }
     ];
-     return (
+    return (
       <div className="co-marketplace-subscribe">
         <div className="co-marketplace-subscribe--header">
           <h1>Subscribe Service</h1>
@@ -86,18 +126,19 @@ class AdminSubscribe extends React.Component {
         </div>
         <div className="co-marketplace-subscribe--form">
           <div className="co-marketplace-subscribe--dropdowns">
-             { form &&
+            { form &&
               form.map((dropdown, index) => (
                 <DropdownElement
                   key={`subscribe-dropdown-${dropdown.id}-${index}`}
                   id={dropdown.id}
                   title={dropdown.title}
                   items={dropdown.items}
+                  help={dropdown.help}
                   onChange={(selected) => this.onChange(selected, dropdown.id)}
                 />
               ))
             }
-           </div>
+          </div>
           <div className="co-marketplace-subscribe--buttons">
             <Button bsStyle="primary" className="btn-cancel" onClick={() => subscribe(this.state.form.dropdowns.namespace)}>
               Subscribe
@@ -121,5 +162,5 @@ class AdminSubscribe extends React.Component {
       </div>
     );
   }
- }
- export { AdminSubscribe };
+}
+export { AdminSubscribe };
