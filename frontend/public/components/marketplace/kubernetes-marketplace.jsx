@@ -103,7 +103,7 @@ export const Marketplace = () => {
   resources.push({
     isList: true,
     kind: referenceForModel(PackageManifestModel),
-    namespace: 'marketplace',
+    namespace: 'openshift-marketplace',
     prop: 'packagemanifests',
   });
   return <Firehose resources={resources}>
