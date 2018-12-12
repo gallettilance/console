@@ -7,6 +7,7 @@ import {history} from '../utils/router';
 import {normalizeIconClass} from '../catalog/catalog-item-icon';
 import {MarketplaceItemModal} from './marketplace-item-modal';
 import {TileViewPage} from '../utils/tile-view-page';
+import {RequireOperatorGroup} from '../operator-lifecycle-manager/operator-group';
 
 // Filter property white list
 const marketplaceFilterGroups = [
@@ -91,7 +92,7 @@ const setURLParams = params => {
   history.replace(`${url.pathname}${searchParams}`);
 };
 
-class MarketplaceTileViewPage extends React.Component {
+class MarketplaceTileView extends React.Component {
   constructor(props) {
     super(props);
 
@@ -166,15 +167,17 @@ class MarketplaceTileViewPage extends React.Component {
           renderTile={this.renderTile}
           emptyStateInfo="No marketplace items are being shown due to the filters being applied."
         />
-        <MarketplaceItemModal show={!!detailsItem} item={detailsItem} close={() => this.closeOverlay()} openSubscribe={/* TODO */} />
+        <MarketplaceItemModal show={!!detailsItem} item={detailsItem} close={() => this.closeOverlay()} />
       </React.Fragment>
     );
   }
 }
 
-MarketplaceTileViewPage.displayName = 'MarketplaceTileViewPage';
-MarketplaceTileViewPage.propTypes = {
+MarketplaceTileView.displayName = 'MarketplaceTileView';
+MarketplaceTileView.propTypes = {
   items: PropTypes.array,
 };
+
+const MarketplaceTileViewPage = RequireOperatorGroup(MarketplaceTileView);
 
 export {MarketplaceTileViewPage};
